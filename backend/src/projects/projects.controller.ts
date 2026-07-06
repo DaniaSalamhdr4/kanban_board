@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Param,
   Patch,
@@ -13,41 +14,53 @@ import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
 
 @Controller('projects')
+@UseGuards(JwtAuthGuard)
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
-  @UseGuards(JwtAuthGuard)
-  @Roles('OWNER')
+
   @Post()
   create(@Body() createProjectDto: CreateProjectDto, @Req() req) {
+    if (req.user.role !== 'OWNER') {
+      throw new ForbiddenException('Only owner can perform this action');
+    }
     console.log('USER:', req.user);
     const ownerId = req.user.sub;
 
     return this.projectsService.create(createProjectDto, ownerId);
   }
-  @Roles('OWNER')
+
   @Get()
-  findAll() {
+  findAll(@Req() req) {
+    if (req.user.role !== 'OWNER') {
+      throw new ForbiddenException('Only owner can perform this action');
+    }
     return this.projectsService.findAll();
   }
-  @Roles('OWNER')
   @Get(':projectId')
-  findOne(@Param('projectId') projectId: string) {
+  findOne(@Param('projectId') projectId: string, @Req() req) {
+    if (req.user.role !== 'OWNER') {
+      throw new ForbiddenException('Only owner can perform this action');
+    }
     return this.projectsService.findOne(projectId);
   }
-  @Roles('OWNER')
   @Patch(':projectId')
   update(
     @Param('projectId') projectId: string,
     @Body() updateProjectDto: UpdateProjectDto,
+    @Req() req,
   ) {
+    if (req.user.role !== 'OWNER') {
+      throw new ForbiddenException('Only owner can perform this action');
+    }
     return this.projectsService.update(projectId, updateProjectDto);
   }
-  @Roles('OWNER')
   @Delete(':projectId')
-  remove(@Param('projectId') projectId: string) {
+  remove(@Param('projectId') projectId: string, @Req() req) {
+    if (req.user.role !== 'OWNER') {
+      throw new ForbiddenException('Only owner can perform this action');
+    }
     return this.projectsService.remove(projectId);
   }
 }

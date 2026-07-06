@@ -9,6 +9,7 @@ import { Board } from './schemas/board.schema';
 import { Column } from '../columns/schemas/column.schema';
 import { Task } from '../tasks/schemas/task.schema';
 import { BoardMember } from '../board-members/schemas/board-member.schema';
+import { ProjectMember } from '../project-members/schemas/project-member.schema';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { UpdateBoardDto } from './dto/update-board.dto';
 
@@ -20,6 +21,8 @@ export class BoardsService {
     @InjectModel(Task.name) private taskModel: Model<Task>,
     @InjectModel(BoardMember.name)
     private boardMemberModel: Model<BoardMember>,
+    @InjectModel(ProjectMember.name)
+    private projectMemberModel: Model<ProjectMember>,
   ) {}
 
   async create(
@@ -49,7 +52,18 @@ export class BoardsService {
       return this.boardModel.find({ projectId });
     }
 
-    
+    const membership = await this.projectMemberModel.findOne({
+      projectId,
+      userId,
+    });
+
+    if (!membership) {
+      throw new ForbiddenException('Not a member of this project');
+    }
+
+    if (membership.canViewAllBoards) {
+      return this.boardModel.find({ projectId });
+    }
 
     // Only boards where user is a board member
     const boardMemberships = await this.boardMemberModel.find({ userId });
@@ -62,6 +76,25 @@ export class BoardsService {
     if (!board) throw new NotFoundException('Board not found');
 
     if (userRole === 'OWNER') return board;
+
+    const projectMembership = await this.projectMemberModel.findOne({
+      projectId: board.projectId,
+      userId,
+    });
+
+    if (!projectMembership) {
+      throw new ForbiddenException('Not a member of this project');
+    }
+
+    if (!projectMembership.canViewAllBoards) {
+      const boardMembership = await this.boardMemberModel.findOne({
+        boardId,
+        userId,
+      });
+      if (!boardMembership) {
+        throw new ForbiddenException('Not a member of this board');
+      }
+    }
 
     return board;
   }

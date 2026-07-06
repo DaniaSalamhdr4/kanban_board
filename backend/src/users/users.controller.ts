@@ -39,4 +39,9 @@ export class UsersController {
   remove(@Param('userId') id: string) {
     return this.usersService.remove(id);
   }
+
+  @Get(':userId/tasks')
+  getUserTasks(@Param('userId') id: string) {
+    return this.usersService.findUserTasks(id);
+  }
 }

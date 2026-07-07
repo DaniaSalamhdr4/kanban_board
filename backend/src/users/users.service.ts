@@ -4,10 +4,14 @@ import { Model } from 'mongoose';
 import { User } from './schemas/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { TasksService } from '../tasks/tasks.service';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<User>,
+    private tasksService: TasksService,
+  ) {}
 
   async create(createUserDto: CreateUserDto) {
     const user = new this.userModel(createUserDto);
@@ -37,5 +41,9 @@ export class UsersService {
     const user = await this.userModel.findByIdAndDelete(id);
     if (!user) throw new NotFoundException('User not found');
     return { message: 'User deleted successfully' };
+  }
+
+  async findTasksByUser(id: string) {
+    return this.tasksService.findByUser(id);
   }
 }

@@ -30,6 +30,11 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
+  @Get(':userId/tasks')
+  findTasks(@Param('userId') id: string) {
+    return this.usersService.findTasksByUser(id);
+  }
+
   @Patch(':userId')
   update(@Param('userId') id: string, @Body() dto: UpdateUserDto) {
     return this.usersService.update(id, dto);

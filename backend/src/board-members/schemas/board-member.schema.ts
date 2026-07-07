@@ -11,7 +11,7 @@ export class BoardMember {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   userId!: Types.ObjectId;
 
-  @Prop({ enum: ['BOARD_LEADER', 'BOARD_MEMBER'], default: 'BOARD_MEMBER' })
+  @Prop({ enum: ['ADMIN', 'MEMBER'], default: 'MEMBER' })
   role!: string;
 
   @Prop({ default: Date.now })
